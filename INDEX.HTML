@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Modal Booking System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" xintegrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9; /* slate-100 */
+        }
+        .modal-bg {
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+        .date-picker-icon {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>');
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="time"]::-webkit-calendar-picker-indicator {
+            opacity: 0;
+            cursor: pointer;
+        }
+        .transport-tab {
+            transition: all 0.3s ease;
+        }
+        .active-tab {
+            color: #2563EB; /* text-blue-600 */
+            border-bottom-color: #2563EB; /* border-blue-600 */
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-blue-800 text-white shadow-lg sticky top-0 z-40">
+        <nav class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Connect India</h1>
+            <div class="flex items-center gap-4">
+                 <button id="my-bookings-btn" class="bg-white/10 hover:bg-white/20 text-white font-bold py-2 px-4 rounded-md transition duration-300 flex items-center gap-2">
+                    <i class="fas fa-folder"></i> My Bookings
+                </button>
+                <div class="text-sm text-right hidden sm:block">
+                    <p>Friday, 10 October 2025</p>
+                    <p>Patna, Bihar</p>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto max-w-7xl p-4 md:p-8">
+        
+        <!-- Hero Section -->
+        <div class="relative rounded-lg overflow-hidden mb-8 shadow-lg">
+             <img src="https://images.unsplash.com/photo-1517649281203-a6a70a4a8d83?q=80&w=2070" class="w-full h-48 object-cover object-center" alt="Travel banner">
+             <div class="absolute inset-0 bg-black/50 flex items-center justify-center">
+                <h2 class="text-white text-3xl md:text-4xl font-bold text-center px-4">Your Journey, Your Way</h2>
+             </div>
+        </div>
+
+        <!-- Search Form Card -->
+        <div id="search-card" class="bg-white p-6 rounded-lg shadow-lg mb-8">
+            <div class="flex border-b mb-6 overflow-x-auto">
+                <button id="train-tab" class="transport-tab active-tab flex-1 md:flex-none py-3 px-4 font-semibold border-b-2 flex items-center justify-center gap-2 whitespace-nowrap">
+                    <i class="fas fa-train"></i> Trains
+                </button>
+                <button id="bus-tab" class="transport-tab flex-1 md:flex-none py-3 px-4 font-semibold text-slate-500 border-b-2 border-transparent flex items-center justify-center gap-2 whitespace-nowrap">
+                    <i class="fas fa-bus"></i> Buses
+                </button>
+                <button id="bike-tab" class="transport-tab flex-1 md:flex-none py-3 px-4 font-semibold text-slate-500 border-b-2 border-transparent flex items-center justify-center gap-2 whitespace-nowrap">
+                    <i class="fas fa-motorcycle"></i> Bikes
+                </button>
+            </div>
+            
+            <!-- Train Search Form -->
+            <form id="train-search-form">
+                <h3 class="text-xl font-bold mb-4 text-blue-800">Book Your Train Ticket</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                    <div class="flex flex-col"><label for="from-station" class="text-sm font-medium mb-1">From</label><input type="text" id="from-station" list="station-list" class="w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500" value="Patna Jn (PNBE)"></div>
+                    <div class="flex flex-col"><label for="to-station" class="text-sm font-medium mb-1">To</label><input type="text" id="to-station" list="station-list" class="w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500" value="New Delhi (NDLS)"></div>
+                    <div class="flex flex-col"><label for="train-journey-date" class="text-sm font-medium mb-1">Date</label><div class="relative"><input type="date" id="train-journey-date" class="w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 appearance-none date-picker-icon"></div></div>
+                    <div class="flex flex-col"><label for="train-class" class="text-sm font-medium mb-1">Class</label><select id="train-class" class="w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500"><option value="ALL">All Classes</option><option value="SL">Sleeper (SL)</option><option value="3A">AC 3 Tier (3A)</option><option value="2A">AC 2 Tier (2A)</option><option value="1A">AC First Class (1A)</option></select></div>
+                    <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300 w-full lg:col-span-1">Find Trains</button>
+                </div>
+            </form>
+            
+            <!-- Bus Search Form -->
+            <form id="bus-search-form" class="hidden">
+                 <h3 class="text-xl font-bold mb-4 text-blue-800">Search for Buses</h3>
+                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                    <div class="flex flex-col"><label for="bus-from" class="text-sm font-medium mb-1">From</label><input type="text" id="bus-from" list="station-list" class="w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500" value="Patna Jn (PNBE)"></div>
+                    <div class="flex flex-col"><label for="bus-to" class="text-sm font-medium mb-1">To</label><input type="text" id="bus-to" list="station-list" class="w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500" value="Varanasi Jn (BSB)"></div>
+                    <div class="flex flex-col"><label for="bus-journey-date" class="text-sm font-medium mb-1">Date</label><div class="relative"><input type="date" id="bus-journey-date" class="w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 appearance-none date-picker-icon"></div></div>
+                    <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300 w-full">Find Buses</button>
+                 </div>
+            </form>
+
+            <!-- Bike Search Form -->
+            <form id="bike-search-form" class="hidden">
+                 <h3 class="text-xl font-bold mb-4 text-blue-800">Rent a Bike</h3>
+                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                    <div class="flex flex-col"><label for="bike-location" class="text-sm font-medium mb-1">City</label><input type="text" id="bike-location" list="station-list" class="w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500" value="Patna Jn (PNBE)"></div>
+                    <div class="flex flex-col"><label for="bike-pickup-date" class="text-sm font-medium mb-1">Pickup Date</label><div class="relative"><input type="date" id="bike-pickup-date" class="w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 appearance-none date-picker-icon"></div></div>
+                    <div class="flex flex-col"><label for="bike-pickup-time" class="text-sm font-medium mb-1">Pickup Time</label><input type="time" id="bike-pickup-time" class="w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500"></div>
+                    <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300 w-full">Find Bikes</button>
+                 </div>
+            </form>
+
+             <datalist id="station-list">
+                <option value="Patna Jn (PNBE)">
+                <option value="New Delhi (NDLS)">
+                <option value="Howrah Jn (HWH)">
+                <option value="Mumbai Central (MMCT)">
+                <option value="Chennai Ctrl (MAS)">
+                <option value="Bengaluru City (SBC)">
+                <option value="Varanasi Jn (BSB)">
+                <option value="Lucknow (LKO)">
+             </datalist>
+        </div>
+
+        <!-- Search Results -->
+        <div id="results-container" class="hidden">
+            <h2 id="results-title" class="text-2xl font-bold mb-4 text-slate-900"></h2>
+            <div id="results-list" class="space-y-6">
+                <!-- Results will be injected here by JavaScript -->
+            </div>
+            <div id="no-results-msg" class="hidden bg-yellow-100 text-yellow-800 p-4 rounded-lg text-center shadow">
+                <p>No results found for your search. Please try different criteria.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Booking Modal -->
+    <div id="booking-modal" class="fixed inset-0 w-full h-full flex items-center justify-center modal-bg z-50 hidden">
+        <div class="bg-white w-11/12 md:w-2/3 lg:w-1/2 p-6 rounded-lg shadow-xl relative">
+            <button id="close-modal" class="absolute top-4 right-4 text-slate-500 hover:text-slate-800 text-2xl">&times;</button>
+            <h3 id="modal-title" class="text-2xl font-bold text-blue-800 mb-4 border-b pb-2"></h3>
+            <div id="modal-details" class="mb-4 bg-slate-50 p-3 rounded-md">
+                <!-- Details for booking will be injected here -->
+            </div>
+            <form id="booking-form">
+                <div id="passenger-details-section" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div><label for="passenger-name" class="block text-sm font-medium">Full Name</label><input type="text" id="passenger-name" required class="mt-1 w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500"></div>
+                    <div><label for="passenger-age" class="block text-sm font-medium">Age</label><input type="number" id="passenger-age" required min="1" max="120" class="mt-1 w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500"></div>
+                    <div><label for="passenger-gender" class="block text-sm font-medium">Gender</label><select id="passenger-gender" required class="mt-1 w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500"><option>Male</option><option>Female</option><option>Other</option></select></div>
+                </div>
+                <div id="bike-rental-section" class="hidden">
+                     <div><label for="rental-hours" class="block text-sm font-medium">Rental Duration (hours)</label><input type="number" id="rental-hours" required min="1" max="24" value="2" class="mt-1 w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500"></div>
+                </div>
+                <div class="text-right mt-4">
+                    <button type="submit" class="bg-green-600 text-white font-bold py-2 px-6 rounded-md hover:bg-green-700 transition duration-300">Confirm Booking</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Confirmation Message Box -->
+    <div id="confirmation-box" class="fixed inset-0 w-full h-full flex items-center justify-center modal-bg z-50 hidden">
+         <div class="bg-white w-11/12 md:w-1/2 lg:w-1/3 p-8 rounded-lg shadow-xl text-center">
+            <div id="confirmation-icon-container" class="mx-auto rounded-full h-16 w-16 flex items-center justify-center mb-4">
+                 <!-- Icon will be injected here -->
+            </div>
+            <h3 id="confirmation-title" class="text-2xl font-bold text-slate-800 mb-2"></h3>
+            <p id="confirmation-message" class="text-slate-600 mb-4"></p>
+            <div id="confirmation-details" class="bg-slate-100 p-3 rounded-md text-lg font-mono"></div>
+            <button id="close-confirmation" class="mt-6 bg-blue-600 text-white font-bold py-2 px-6 rounded-md hover:bg-blue-700 transition duration-300">Close</button>
+        </div>
+    </div>
+    
+    <!-- Cancel Confirmation Modal -->
+    <div id="cancel-confirm-modal" class="fixed inset-0 w-full h-full flex items-center justify-center modal-bg z-50 hidden">
+         <div class="bg-white w-11/12 md:w-1/2 lg:w-1/3 p-8 rounded-lg shadow-xl text-center">
+            <div class="mx-auto bg-red-100 rounded-full h-16 w-16 flex items-center justify-center mb-4">
+                <i class="fas fa-exclamation-triangle text-3xl text-red-600"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-slate-800 mb-2">Are you sure?</h3>
+            <p class="text-slate-600 mb-6">Do you really want to cancel this booking? This process cannot be undone.</p>
+            <div class="flex justify-center gap-4">
+                <button id="cancel-confirm-btn" class="bg-red-600 text-white font-bold py-2 px-6 rounded-md hover:bg-red-700 transition duration-300">Yes, Cancel</button>
+                <button id="cancel-abort-btn" class="bg-slate-300 text-slate-800 font-bold py-2 px-6 rounded-md hover:bg-slate-400 transition duration-300">No</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Bookings Folder Modal -->
+    <div id="bookings-folder-modal" class="fixed inset-0 w-full h-full flex items-center justify-center modal-bg z-50 hidden">
+        <div class="bg-slate-50 w-11/12 md:w-2/3 lg:w-3/5 h-5/6 p-6 rounded-lg shadow-xl relative flex flex-col">
+            <button id="close-bookings-folder" class="absolute top-4 right-4 text-slate-500 hover:text-slate-800 text-2xl">&times;</button>
+            <h3 class="text-2xl font-bold text-blue-800 mb-4 border-b pb-2">My Bookings</h3>
+            <div class="space-y-4 overflow-y-auto pr-2">
+                <!-- Train Bookings Accordion -->
+                <div class="border rounded-md bg-white">
+                    <button class="accordion-header w-full flex justify-between items-center p-4 hover:bg-slate-50">
+                        <span class="font-bold text-lg text-slate-700"><i class="fas fa-train mr-2 text-blue-600"></i> Train Bookings</span>
+                        <i class="fas fa-chevron-down transition-transform"></i>
+                    </button>
+                    <div id="train-bookings-content" class="accordion-content p-4 space-y-3 border-t">
+                        <p class="text-slate-500 no-booking-msg">No train bookings yet.</p>
+                    </div>
+                </div>
+                <!-- Bus Bookings Accordion -->
+                <div class="border rounded-md bg-white">
+                    <button class="accordion-header w-full flex justify-between items-center p-4 hover:bg-slate-50">
+                        <span class="font-bold text-lg text-slate-700"><i class="fas fa-bus mr-2 text-green-600"></i> Bus Bookings</span>
+                        <i class="fas fa-chevron-down transition-transform"></i>
+                    </button>
+                    <div id="bus-bookings-content" class="accordion-content p-4 space-y-3 border-t">
+                         <p class="text-slate-500 no-booking-msg">No bus bookings yet.</p>
+                    </div>
+                </div>
+                <!-- Bike Rentals Accordion -->
+                <div class="border rounded-md bg-white">
+                    <button class="accordion-header w-full flex justify-between items-center p-4 hover:bg-slate-50">
+                        <span class="font-bold text-lg text-slate-700"><i class="fas fa-motorcycle mr-2 text-orange-600"></i> Bike Rentals</span>
+                        <i class="fas fa-chevron-down transition-transform"></i>
+                    </button>
+                    <div id="bike-bookings-content" class="accordion-content p-4 space-y-3 border-t">
+                         <p class="text-slate-500 no-booking-msg">No bike rentals yet.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- MOCK DATA ---
+        let trainData = [ { trainNo: "12309", trainName: "Rajdhani Express", from: "Patna Jn (PNBE)", to: "New Delhi (NDLS)", departure: "19:10", arrival: "07:40", duration: "12h 30m", availability: { "3A": 120, "2A": 75, "1A": 32 } }, { trainNo: "12393", trainName: "Sampoorna Kranti Exp", from: "Patna Jn (PNBE)", to: "New Delhi (NDLS)", departure: "19:25", arrival: "07:55", duration: "12h 30m", availability: { "SL": 250, "3A": 150, "2A": 80, "1A": 40 } }, { trainNo: "12423", trainName: "Dibrugarh Rajdhani", from: "Patna Jn (PNBE)", to: "New Delhi (NDLS)", departure: "21:50", arrival: "10:30", duration: "12h 40m", availability: { "3A": 90, "2A": 50, "1A": 25 } }, { trainNo: "12331", trainName: "Himgiri Express", from: "Patna Jn (PNBE)", to: "Varanasi Jn (BSB)", departure: "10:15", arrival: "14:45", duration: "4h 30m", availability: { "SL": 180, "3A": 110, "2A": 60 } }, { trainNo: "13005", trainName: "Howrah Mail", from: "Patna Jn (PNBE)", to: "Howrah Jn (HWH)", departure: "21:00", arrival: "06:35", duration: "9h 35m", availability: { "SL": 300, "3A": 180, "2A": 100 } }, { trainNo: "20801", trainName: "Magadh Express", from: "New Delhi (NDLS)", to: "Patna Jn (PNBE)", departure: "20:00", arrival: "11:50", duration: "15h 50m", availability: { "SL": 400, "3A": 250, "2A": 120 } }];
+        let busData = [ { operatorId: "BS01", operator: "Blue Hills Travels", from: "Patna Jn (PNBE)", to: "Varanasi Jn (BSB)", departure: "22:00", arrival: "04:00", duration: "6h 0m", busType: "A/C Sleeper (2+1)", seats: 25, price: 800 }, { operatorId: "BS02", operator: "Ganga Travels", from: "Patna Jn (PNBE)", to: "Howrah Jn (HWH)", departure: "18:00", arrival: "05:30", duration: "11h 30m", busType: "Volvo A/C Seater (2+2)", seats: 40, price: 1200 }, { operatorId: "BS03", operator: "Rani Express", from: "Varanasi Jn (BSB)", to: "Patna Jn (PNBE)", departure: "21:30", arrival: "03:45", duration: "6h 15m", busType: "Non A/C Seater", seats: 52, price: 450 }];
+        let bikeData = [ { id: "BK001", model: "Bajaj Pulsar 150", location: "Patna Jn (PNBE)", price: 50, available: true, img: `https://images.unsplash.com/photo-1627443831776-5ED45d7b324a?w=500&q=80` }, { id: "BK002", model: "Honda Activa 6G", location: "Patna Jn (PNBE)", price: 30, available: true, img: `https://images.unsplash.com/photo-1629893504349-f5ba48c4852c?w=500&q=80` }, { id: "BK003", model: "Royal Enfield Classic 350", location: "New Delhi (NDLS)", price: 80, available: true, img: `https://images.unsplash.com/photo-1620875791722-261498870104?w=500&q=80` }, { id: "BK004", model: "TVS Jupiter", location: "Varanasi Jn (BSB)", price: 35, available: false, img: `https://images.unsplash.com/photo-1599032909334-935c15a51325?w=500&q=80` }];
+        const myBookings = { trains: [], buses: [], bikes: [] };
+
+        // --- DOM Elements ---
+        const searchCard = document.getElementById('search-card');
+        const resultsContainer = document.getElementById('results-container');
+        const resultsTitle = document.getElementById('results-title');
+        const resultsList = document.getElementById('results-list');
+        const noResultsMsg = document.getElementById('no-results-msg');
+        
+        const tabs = document.querySelectorAll('.transport-tab');
+        const trainForm = document.getElementById('train-search-form');
+        const busForm = document.getElementById('bus-search-form');
+        const bikeForm = document.getElementById('bike-search-form');
+        
+        const bookingModal = document.getElementById('booking-modal');
+        const closeModalBtn = document.getElementById('close-modal');
+        const bookingForm = document.getElementById('booking-form');
+        const modalTitle = document.getElementById('modal-title');
+        const modalDetails = document.getElementById('modal-details');
+        const passengerDetailsSection = document.getElementById('passenger-details-section');
+        const bikeRentalSection = document.getElementById('bike-rental-section');
+
+        const confirmationBox = document.getElementById('confirmation-box');
+        const closeConfirmationBtn = document.getElementById('close-confirmation');
+        const confirmationTitle = document.getElementById('confirmation-title');
+        const confirmationMessage = document.getElementById('confirmation-message');
+        const confirmationDetails = document.getElementById('confirmation-details');
+        const confirmationIconContainer = document.getElementById('confirmation-icon-container');
+        
+        const cancelConfirmModal = document.getElementById('cancel-confirm-modal');
+        const cancelConfirmBtn = document.getElementById('cancel-confirm-btn');
+        const cancelAbortBtn = document.getElementById('cancel-abort-btn');
+
+        const myBookingsBtn = document.getElementById('my-bookings-btn');
+        const bookingsFolderModal = document.getElementById('bookings-folder-modal');
+        const closeBookingsFolderBtn = document.getElementById('close-bookings-folder');
+
+        let activeTab = 'train';
+        let currentBookingDetails = null;
+        let bookingToCancel = null;
+
+        // --- INITIALIZATION ---
+        const today = new Date('2025-10-10T12:00:00');
+        const todayStr = today.toISOString().split('T')[0];
+        document.querySelectorAll('input[type="date"]').forEach(inp => {
+            inp.value = todayStr;
+            inp.min = todayStr;
+        });
+        document.getElementById('bike-pickup-time').value = "10:00";
+
+
+        // --- EVENT LISTENERS ---
+        tabs.forEach(tab => tab.addEventListener('click', () => switchTab(tab.id.replace('-tab', ''))));
+        searchCard.addEventListener('submit', (e) => { e.preventDefault(); findAndDisplay(); });
+        
+        closeModalBtn.addEventListener('click', () => bookingModal.classList.add('hidden'));
+        closeConfirmationBtn.addEventListener('click', () => confirmationBox.classList.add('hidden'));
+        bookingForm.addEventListener('submit', (e) => { e.preventDefault(); confirmBooking(); });
+
+        myBookingsBtn.addEventListener('click', openMyBookings);
+        closeBookingsFolderBtn.addEventListener('click', () => bookingsFolderModal.classList.add('hidden'));
+        
+        cancelAbortBtn.addEventListener('click', () => cancelConfirmModal.classList.add('hidden'));
+        cancelConfirmBtn.addEventListener('click', executeCancellation);
+
+        document.querySelectorAll('.accordion-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const content = header.nextElementSibling;
+                const icon = header.querySelector('i:last-child');
+                icon.classList.toggle('rotate-180');
+                if (content.style.maxHeight) {
+                    content.style.maxHeight = null;
+                } else {
+                    content.style.maxHeight = content.scrollHeight + "px";
+                } 
+            });
+        });
+
+        // --- FUNCTIONS ---
+        function switchTab(tabName) {
+            activeTab = tabName;
+            resultsContainer.classList.add('hidden'); 
+            
+            tabs.forEach(tab => {
+                tab.classList.toggle('active-tab', tab.id === `${tabName}-tab`);
+                tab.classList.toggle('text-slate-500', tab.id !== `${tabName}-tab`);
+                tab.classList.toggle('border-transparent', tab.id !== `${tabName}-tab`);
+            });
+
+            trainForm.classList.toggle('hidden', tabName !== 'train');
+            busForm.classList.toggle('hidden', tabName !== 'bus');
+            bikeForm.classList.toggle('hidden', tabName !== 'bike');
+        }
+
+        function findAndDisplay() {
+             switch (activeTab) {
+                case 'train': findTrains(); break;
+                case 'bus': findBuses(); break;
+                case 'bike': findBikes(); break;
+            }
+        }
+
+        function showResults(title, items, displayFn) {
+            resultsContainer.classList.remove('hidden');
+            resultsTitle.textContent = title;
+            resultsList.innerHTML = '';
+
+            if (items.length === 0) {
+                noResultsMsg.classList.remove('hidden');
+                resultsList.classList.add('hidden');
+            } else {
+                noResultsMsg.classList.add('hidden');
+                resultsList.classList.remove('hidden');
+                items.forEach(item => resultsList.appendChild(displayFn(item)));
+            }
+            addBookButtonListeners();
+        }
+
+        function findTrains() {
+            const from = document.getElementById('from-station').value;
+            const to = document.getElementById('to-station').value;
+            const filtered = trainData.filter(t => t.from === from && t.to === to);
+            showResults('Available Trains', filtered, createTrainCard);
+        }
+
+        function createTrainCard(train) {
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-lg shadow-lg flex flex-col md:flex-row items-stretch overflow-hidden transition-shadow hover:shadow-xl';
+            const selectedClass = document.getElementById('train-class').value;
+            const date = new Date(document.getElementById('train-journey-date').value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+            
+            let availabilityHTML = '', hasAvailableClass = false;
+            Object.entries(train.availability).forEach(([cls, seats]) => {
+                if (selectedClass === 'ALL' || selectedClass === cls) {
+                    hasAvailableClass = true;
+                    availabilityHTML += `<div class="p-3 text-center flex-1 border-b md:border-b-0 md:border-l last:border-b-0"><p class="font-semibold text-slate-700">${cls}</p><p class="text-green-600 font-bold">AVL ${seats}</p><button class="book-now-btn mt-2 bg-blue-500 text-white text-sm py-1 px-3 rounded-md hover:bg-blue-600" data-type="train" data-id="${train.trainNo}" data-class="${cls}" data-date="${date}">Book</button></div>`;
+                }
+            });
+
+            if (!hasAvailableClass) return document.createDocumentFragment();
+            
+            card.innerHTML = `<div class="md:w-48 flex-shrink-0"><img src="https://images.unsplash.com/photo-1590001804585-35a31c462725?w=500&q=80" onerror="this.onerror=null;this.src='https://placehold.co/192x192/A3BFFA/172554?text=Train';" alt="Train" class="w-full h-48 md:h-full object-cover"></div><div class="flex-grow p-4 flex flex-col justify-between"><div><h3 class="text-xl font-bold text-slate-900">${train.trainName} <span class="text-slate-500">(${train.trainNo})</span></h3><p class="text-sm text-slate-500">${train.from} &rarr; ${train.to}</p><div class="mt-4 flex justify-between items-center text-center"><div><p class="text-lg font-semibold">${train.departure}</p><p class="text-sm text-slate-600">Departure</p></div><div><p class="text-sm text-slate-500">${train.duration}</p><div class="w-20 h-px bg-slate-300"></div></div><div><p class="text-lg font-semibold">${train.arrival}</p><p class="text-sm text-slate-600">Arrival</p></div></div></div></div><div class="flex flex-row md:flex-col justify-around bg-slate-50 border-t md:border-t-0 md:border-l">${availabilityHTML}</div>`;
+            return card;
+        }
+
+        function findBuses() {
+            const from = document.getElementById('bus-from').value;
+            const to = document.getElementById('bus-to').value;
+            const filtered = busData.filter(b => b.from === from && b.to === to);
+            showResults('Available Buses', filtered, createBusCard);
+        }
+
+        function createBusCard(bus) {
+            const card = document.createElement('div');
+            card.className = 'bg-white p-4 rounded-lg shadow-lg flex items-center gap-4 transition-shadow hover:shadow-xl';
+            const date = new Date(document.getElementById('bus-journey-date').value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+            card.innerHTML = `<div class="w-24 md:w-32 flex-shrink-0"><img src="https://images.unsplash.com/photo-1570125909232-eb263c186f29?w=500&q=80" onerror="this.onerror=null;this.src='https://placehold.co/128x100/FCA5A5/7F1D1D?text=Bus';" alt="Bus" class="w-full h-full object-cover rounded-md"></div><div class="flex-grow"><h3 class="text-xl font-bold text-slate-900">${bus.operator}</h3><p class="text-sm text-slate-500">${bus.busType}</p><div class="mt-2 flex items-center gap-4 text-sm"><span class="font-semibold">${bus.departure} &rarr; ${bus.arrival}</span><span>(${bus.duration})</span></div></div><div class="text-center sm:text-right flex-shrink-0"><p class="text-xl font-bold">₹${bus.price}</p><p class="text-green-600 font-semibold">${bus.seats} seats available</p><button class="book-now-btn mt-2 bg-blue-500 text-white py-1 px-4 rounded-md hover:bg-blue-600" data-type="bus" data-id="${bus.operatorId}" data-date="${date}">Book Now</button></div>`;
+            return card;
+        }
+
+        function findBikes() {
+            const location = document.getElementById('bike-location').value;
+            const filtered = bikeData.filter(b => b.location === location);
+            showResults('Available Bikes', filtered, createBikeCard);
+        }
+
+        function createBikeCard(bike) {
+            const card = document.createElement('div');
+            card.className = 'bg-white p-4 rounded-lg shadow-lg flex items-center justify-between gap-4 transition-shadow hover:shadow-xl';
+            const date = new Date(document.getElementById('bike-pickup-date').value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+            const time = document.getElementById('bike-pickup-time').value;
+
+            card.innerHTML = `<div class="flex items-center gap-4"><img src="${bike.img}" onerror="this.onerror=null;this.src='https://placehold.co/100x80/D1FAE5/065F46?text=Bike';" alt="${bike.model}" class="w-24 h-20 object-cover rounded-md bg-slate-200"><div><h3 class="text-xl font-bold text-slate-900">${bike.model}</h3><p class="text-lg font-semibold text-slate-700">₹${bike.price}/hr</p></div></div><div class="text-right">${bike.available ? `<button class="book-now-btn bg-blue-500 text-white py-1 px-4 rounded-md hover:bg-blue-600" data-type="bike" data-id="${bike.id}" data-date="${date}" data-time="${time}">Rent Now</button>` : '<p class="text-red-500 font-semibold">Unavailable</p>'}</div>`;
+            return card;
+        }
+
+        function addBookButtonListeners() {
+            document.querySelectorAll('.book-now-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const { type, id, date, time } = e.currentTarget.dataset;
+                    const trainClass = e.currentTarget.dataset.class; // Only for trains
+                    openBookingModal({ type, id, date, time, class: trainClass });
+                });
+            });
+        }
+        
+        function openBookingModal(details) {
+            currentBookingDetails = details;
+            bookingForm.reset();
+            let item, title, detailsHTML = '';
+            
+            passengerDetailsSection.classList.toggle('hidden', details.type === 'bike');
+            bikeRentalSection.classList.toggle('hidden', details.type !== 'bike');
+
+            switch (details.type) {
+                case 'train':
+                    item = trainData.find(t => t.trainNo === details.id);
+                    title = 'Train Passenger Details';
+                    detailsHTML = `<p><span class="font-semibold">Train:</span> ${item.trainName} (${item.trainNo})</p><p><span class="font-semibold">Route:</span> ${item.from} to ${item.to}</p><p><span class="font-semibold">Date:</span> ${details.date}</p><p><span class="font-semibold">Class:</span> ${details.class}</p>`;
+                    break;
+                case 'bus':
+                    item = busData.find(b => b.operatorId === details.id);
+                    title = 'Bus Passenger Details';
+                    detailsHTML = `<p><span class="font-semibold">Bus:</span> ${item.operator}</p><p><span class="font-semibold">Route:</span> ${item.from} to ${item.to}</p><p><span class="font-semibold">Date:</span> ${details.date}</p><p class="font-semibold mt-2">Price: ₹${item.price}</p>`;
+                    break;
+                case 'bike':
+                    item = bikeData.find(b => b.id === details.id);
+                    title = 'Bike Rental Details';
+                    detailsHTML = `<p><span class="font-semibold">Bike:</span> ${item.model}</p><p><span class="font-semibold">Location:</span> ${item.location}</p><p><span class="font-semibold">Pickup:</span> ${details.date} at ${details.time}</p><p class="font-semibold mt-2">Price: ₹${item.price}/hr</p>`;
+                    break;
+            }
+            modalTitle.textContent = title;
+            modalDetails.innerHTML = detailsHTML;
+            bookingModal.classList.remove('hidden');
+        }
+
+        function confirmBooking() {
+            const { type, id } = currentBookingDetails;
+            let msg = '', detailsHTML = '', item, bookingId;
+            const passengerName = document.getElementById('passenger-name').value;
+            
+            bookingModal.classList.add('hidden');
+            
+            switch (type) {
+                case 'train':
+                    item = trainData.find(t => t.trainNo === id);
+                    item.availability[currentBookingDetails.class]--;
+                    bookingId = Math.floor(1000000000 + Math.random() * 9000000000);
+                    myBookings.trains.push({ ...currentBookingDetails, ...item, id: bookingId, pnr: bookingId, passenger: passengerName });
+                    msg = 'Your train ticket has been successfully booked.';
+                    detailsHTML = `<p>PNR: <strong>${bookingId}</strong></p>`;
+                    break;
+                case 'bus':
+                    item = busData.find(b => b.operatorId === id);
+                    item.seats--;
+                    bookingId = 'B' + Math.floor(100000 + Math.random() * 900000);
+                    myBookings.buses.push({ ...currentBookingDetails, ...item, id: bookingId, ticketNo: bookingId, passenger: passengerName });
+                    msg = 'Your bus ticket has been successfully booked.';
+                    detailsHTML = `<p>Ticket No: <strong>${bookingId}</strong></p>`;
+                    break;
+                case 'bike':
+                    item = bikeData.find(b => b.id === id);
+                    item.available = false;
+                    const hours = document.getElementById('rental-hours').value || 2;
+                    bookingId = 'R' + Math.floor(100000 + Math.random() * 900000);
+                    myBookings.bikes.push({ ...currentBookingDetails, ...item, id: bookingId, bookingId, hours, total: item.price * hours, passenger: passengerName });
+                    msg = `Your bike rental is confirmed for ${hours} hours.`;
+                    detailsHTML = `<p>Booking ID: <strong>${bookingId}</strong></p><p>Total: <strong>₹${item.price * hours}</strong></p>`;
+                    break;
+            }
+            
+            showConfirmation('Booking Confirmed!', msg, detailsHTML, 'success');
+            findAndDisplay(); // Refresh search results
+        }
+        
+        function promptCancellation(type, id) {
+            bookingToCancel = { type, id };
+            cancelConfirmModal.classList.remove('hidden');
+        }
+        
+        function executeCancellation() {
+            const { type, id } = bookingToCancel;
+            const bookingIndex = myBookings[type].findIndex(b => b.id.toString() === id.toString());
+            
+            if (bookingIndex > -1) {
+                const booking = myBookings[type][bookingIndex];
+                
+                // Restore availability
+                if (type === 'trains') {
+                    const train = trainData.find(t => t.trainNo === booking.trainNo);
+                    if(train) train.availability[booking.class]++;
+                } else if (type === 'buses') {
+                    const bus = busData.find(b => b.operatorId === booking.operatorId);
+                    if(bus) bus.seats++;
+                } else if (type === 'bikes') {
+                    const bike = bikeData.find(b => b.id === booking.bikeId); // Original bike ID is stored in booking
+                    if(bike) bike.available = true;
+                }
+                
+                myBookings[type].splice(bookingIndex, 1);
+            }
+            
+            cancelConfirmModal.classList.add('hidden');
+            openMyBookings(); // Refresh the bookings display
+            findAndDisplay(); // Refresh search results to show updated availability
+            showConfirmation('Booking Cancelled', 'Your booking has been successfully cancelled.', '', 'info');
+        }
+
+        function showConfirmation(title, message, details, type) {
+            let iconHTML = '';
+            if (type === 'success') {
+                confirmationIconContainer.className = 'mx-auto bg-green-100 rounded-full h-16 w-16 flex items-center justify-center mb-4';
+                iconHTML = `<svg class="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
+            } else { // info for cancellation
+                confirmationIconContainer.className = 'mx-auto bg-blue-100 rounded-full h-16 w-16 flex items-center justify-center mb-4';
+                iconHTML = `<i class="fas fa-info-circle text-3xl text-blue-600"></i>`;
+            }
+            
+            confirmationIconContainer.innerHTML = iconHTML;
+            confirmationTitle.textContent = title;
+            confirmationMessage.textContent = message;
+            confirmationDetails.innerHTML = details;
+            confirmationBox.classList.remove('hidden');
+        }
+
+
+        function openMyBookings() {
+            displayBookings('trains', 'train-bookings-content', createTrainBookingCard);
+            displayBookings('buses', 'bus-bookings-content', createBusBookingCard);
+            displayBookings('bikes', 'bike-bookings-content', createBikeBookingCard);
+            bookingsFolderModal.classList.remove('hidden');
+        }
+
+        function displayBookings(type, containerId, cardFn) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            const bookings = myBookings[type];
+
+            if (bookings.length === 0) {
+                 container.innerHTML = '<p class="text-slate-500 no-booking-msg">No bookings yet in this category.</p>';
+            } else {
+                bookings.forEach(booking => container.appendChild(cardFn(booking)));
+            }
+        }
+        
+        function createTrainBookingCard(booking) {
+            const card = document.createElement('div');
+            card.className = 'p-4 border rounded-lg shadow-sm bg-slate-50 relative';
+            card.innerHTML = `
+                <p class="font-bold text-slate-800">${booking.trainName} (${booking.trainNo})</p>
+                <p class="text-sm">${booking.from} &rarr; ${booking.to}</p>
+                <p class="text-sm">Date: ${booking.date}, Class: ${booking.class}</p>
+                <p class="text-sm font-mono mt-1 text-blue-700">PNR: ${booking.pnr}</p>
+                <button onclick="promptCancellation('trains', '${booking.id}')" class="absolute top-2 right-2 text-red-500 hover:text-red-700 text-sm font-semibold">Cancel</button>
+            `;
+            return card;
+        }
+
+        function createBusBookingCard(booking) {
+             const card = document.createElement('div');
+            card.className = 'p-4 border rounded-lg shadow-sm bg-slate-50 relative';
+            card.innerHTML = `
+                <p class="font-bold text-slate-800">${booking.operator}</p>
+                <p class="text-sm">${booking.from} &rarr; ${booking.to}</p>
+                <p class="text-sm">Date: ${booking.date}</p>
+                <p class="text-sm font-mono mt-1 text-green-700">Ticket No: ${booking.ticketNo}</p>
+                <button onclick="promptCancellation('buses', '${booking.id}')" class="absolute top-2 right-2 text-red-500 hover:text-red-700 text-sm font-semibold">Cancel</button>
+            `;
+            return card;
+        }
+
+        function createBikeBookingCard(booking) {
+             const card = document.createElement('div');
+            card.className = 'p-4 border rounded-lg shadow-sm bg-slate-50 relative';
+            card.innerHTML = `
+                <p class="font-bold text-slate-800">${booking.model}</p>
+                <p class="text-sm">Location: ${booking.location}</p>
+                <p class="text-sm">Pickup: ${booking.date} at ${booking.time}</p>
+                <p class="text-sm">Duration: ${booking.hours} hours (Total: ₹${booking.total})</p>
+                <p class="text-sm font-mono mt-1 text-orange-700">Booking ID: ${booking.bookingId}</p>
+                <button onclick="promptCancellation('bikes', '${booking.id}')" class="absolute top-2 right-2 text-red-500 hover:text-red-700 text-sm font-semibold">Cancel</button>
+            `;
+            return card;
+        }
+
+        // Make it globally accessible for the inline onclick
+        window.promptCancellation = promptCancellation;
+    });
+    </script>
+</body>
+</html>
+
